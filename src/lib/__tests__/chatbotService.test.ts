@@ -1,0 +1,293 @@
+import { PortfolioChatbotEngine } from "../chatbotService";
+import { ActiveContext } from "../chatbotKnowledge";
+
+describe("PortfolioChatbotEngine - Gratitude & Auto-Close Intent", () => {
+  const defaultContext: ActiveContext = {
+    view: "home",
+    project: null,
+    section: "hero",
+  };
+
+  test("returns autoCloseAfterSeconds: 20 for English thank you", () => {
+    const queries = [
+      "thank you",
+      "thank you!",
+      "thanks",
+      "thanks a lot",
+      "many thanks",
+      "ty",
+      "tysm",
+      "thx",
+    ];
+
+    for (const q of queries) {
+      const res = PortfolioChatbotEngine.processQuery(q, defaultContext);
+      expect(res.contextTag).toBe("gratitude");
+      expect(res.autoCloseAfterSeconds).toBe(20);
+      expect(res.text).toContain("very welcome");
+    }
+  });
+
+  test("returns autoCloseAfterSeconds: 20 for Bengali / Banglish gratitude", () => {
+    const queries = [
+      "dhonnobad",
+      "onek dhonnobad",
+      "dhonnobad apnake",
+      "ধন্যবাদ",
+      "থ্যাংকস",
+      "থ্যাংক ইউ",
+      "শুকরিয়া",
+    ];
+
+    for (const q of queries) {
+      const res = PortfolioChatbotEngine.processQuery(q, defaultContext);
+      expect(res.contextTag).toBe("gratitude");
+      expect(res.autoCloseAfterSeconds).toBe(20);
+    }
+  });
+
+  test("does NOT trigger auto-close for normal questions", () => {
+    const normalQueries = [
+      "what projects do you have?",
+      "tell me about your flutter experience",
+      "how to contact nashir",
+      "show me skills",
+    ];
+
+    for (const q of normalQueries) {
+      const res = PortfolioChatbotEngine.processQuery(q, defaultContext);
+      expect(res.contextTag).not.toBe("gratitude");
+      expect(res.autoCloseAfterSeconds).toBeUndefined();
+    }
+  });
+});
+
+describe("PortfolioChatbotEngine - Dynamic Project Matching & Clarification", () => {
+  const defaultContext: ActiveContext = {
+    view: "home",
+    project: null,
+    section: "hero",
+  };
+
+  test("matches 'nlp' to NLP Sentiment Analyzer and asks 'Apni ki eta khujchen naki onno kichu?'", () => {
+    const res = PortfolioChatbotEngine.processQuery("nlp", defaultContext);
+    expect(res.text).toContain("NLP Sentiment Analyzer");
+    expect(res.text).toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.projectsList).toBeDefined();
+    expect(res.projectsList?.length).toBe(1);
+    expect(res.projectsList?.[0].id).toBe("sentiment-analyzer");
+    expect(res.actions?.some((a) => a.label.includes("GitHub"))).toBe(true);
+  });
+
+  test("matches 'ami nlp likhe msg dichi' to NLP Sentiment Analyzer", () => {
+    const res = PortfolioChatbotEngine.processQuery("ami nlp likhe msg dichi", defaultContext);
+    expect(res.text).toContain("NLP Sentiment Analyzer");
+    expect(res.text).toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.projectsList?.[0].id).toBe("sentiment-analyzer");
+  });
+
+  test("matches partial title 'sentiment' to NLP Sentiment Analyzer", () => {
+    const res = PortfolioChatbotEngine.processQuery("sentiment", defaultContext);
+    expect(res.text).toContain("NLP Sentiment Analyzer");
+    expect(res.projectsList?.[0].id).toBe("sentiment-analyzer");
+  });
+
+  test("matches 'iot' to multiple IoT projects and prompts for clarification", () => {
+    const res = PortfolioChatbotEngine.processQuery("iot", defaultContext);
+    expect(res.text).toContain("Apni ki egulor moddhe konta khujchen naki onno kichu?");
+    expect(res.projectsList).toBeDefined();
+    expect(res.projectsList!.length).toBeGreaterThanOrEqual(2);
+    const ids = res.projectsList!.map((p) => p.id);
+    expect(ids).toContain("smart-home-iot");
+    expect(ids).toContain("agricultural-monitoring");
+  });
+
+  test("matches 'purchify' to PurchifyShop", () => {
+    const res = PortfolioChatbotEngine.processQuery("purchify", defaultContext);
+    expect(res.text).toContain("PurchifyShop");
+    expect(res.text).toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.projectsList?.[0].id).toBe("purchifyshop");
+  });
+
+  test("matches 'bachlife' to BachLife", () => {
+    const res = PortfolioChatbotEngine.processQuery("bachlife", defaultContext);
+    expect(res.text).toContain("BachLife");
+    expect(res.text).toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.projectsList?.[0].id).toBe("bachlife");
+  });
+
+  test("matches 'lstm' to Predictive Time-Series Forecaster", () => {
+    const res = PortfolioChatbotEngine.processQuery("lstm", defaultContext);
+    expect(res.text).toContain("Predictive Time-Series Forecaster");
+    expect(res.text).toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.projectsList?.[0].id).toBe("time-series-forecasting");
+  });
+
+  test("returns zero-hallucination fallback for completely unrelated query", () => {
+    const res = PortfolioChatbotEngine.processQuery("what is the capital of France?", defaultContext);
+    expect(res.text).toContain("I couldn't find that information in the portfolio.");
+    expect(res.text).toContain("I only answer using verified content from this website");
+    expect(res.projectsList).toBeUndefined();
+  });
+
+  test("matches 'Ai & Ml project' only to genuine AI/ML projects and excludes web projects", () => {
+    const res = PortfolioChatbotEngine.processQuery("Ai & Ml project", defaultContext);
+    expect(res.text).toContain("AI & Machine Learning");
+    expect(res.projectsList).toBeDefined();
+    expect(res.projectsList!.length).toBeGreaterThanOrEqual(2);
+
+    const ids = res.projectsList!.map((p) => p.id);
+    // Verified AI/ML projects
+    expect(
+      ids.some(
+        (id) =>
+          id.includes("careerpath") ||
+          id.includes("sentiment") ||
+          id.includes("image") ||
+          id.includes("forecasting") ||
+          id.includes("heart")
+      )
+    ).toBe(true);
+
+    // Unrelated web projects MUST NEVER be present
+    expect(ids).not.toContain("saytica");
+    expect(ids).not.toContain("amin-webtech");
+    expect(ids).not.toContain("tripfly-bd");
+    expect(ids).not.toContain("midtown-aabashon");
+    expect(ids).not.toContain("purchifyshop");
+  });
+
+  test("matches 'ai projects' and does not leak Tailwind CSS web projects", () => {
+    const res = PortfolioChatbotEngine.processQuery("ai projects", defaultContext);
+    const ids = (res.projectsList || []).map((p) => p.id);
+    expect(ids).not.toContain("saytica");
+    expect(ids).not.toContain("amin-webtech");
+    expect(ids).not.toContain("tripfly-bd");
+  });
+});
+
+describe("PortfolioChatbotEngine - Quick Actions & Section Intents", () => {
+  const defaultContext: ActiveContext = {
+    view: "home",
+    project: null,
+    section: "hero",
+  };
+
+  test("'What skills do you have?' returns nashir's technical stack and scrolls to skills, NOT CareerPath AI", () => {
+    const res = PortfolioChatbotEngine.processQuery("What skills do you have?", defaultContext);
+    expect(res.text).toContain("nashir's core technical stack");
+    expect(res.text).not.toContain("CareerPath AI");
+    expect(res.text).not.toContain("Apni ki eta khujchen naki onno kichu?");
+    expect(res.actions).toBeDefined();
+    expect(res.actions?.some((a) => a.target === "skills" && a.type === "scroll")).toBe(true);
+  });
+
+  test("'What is your career experience?' returns work experience, NOT CareerPath AI", () => {
+    const res = PortfolioChatbotEngine.processQuery("What is your career experience?", defaultContext);
+    expect(res.text).not.toContain("CareerPath AI");
+    expect(res.actions?.some((a) => a.target === "experience" && a.type === "scroll")).toBe(true);
+  });
+
+  test("'Show certifications' returns verified credentials and scroll to certificates", () => {
+    const res = PortfolioChatbotEngine.processQuery("Show certifications", defaultContext);
+    expect(res.text).toContain("certifications");
+    expect(res.text).not.toContain("—");
+    expect(res.text).toContain("-");
+    expect(res.actions?.some((a) => a.target === "certificates" && a.type === "scroll")).toBe(true);
+  });
+
+  test("hidden/inactive certificates (isActive: false) are not included in chatbot answers", () => {
+    localStorage.setItem(
+      "nashir_cached_certificates",
+      JSON.stringify([
+        {
+          title: "Hidden Secret Certificate",
+          issuer: "Secret Org",
+          year: "2026",
+          type: "Professional",
+          isActive: false,
+        },
+        {
+          title: "Active Public Certificate",
+          issuer: "Public Org",
+          year: "2026",
+          type: "Professional",
+          isActive: true,
+        },
+      ])
+    );
+
+    const res = PortfolioChatbotEngine.processQuery("Show certifications", defaultContext);
+    expect(res.text).not.toContain("Hidden Secret Certificate");
+    expect(res.text).toContain("Active Public Certificate");
+
+    localStorage.removeItem("nashir_cached_certificates");
+  });
+
+  test("'What projects are available?' returns general projects overview with scroll to projects", () => {
+    const res = PortfolioChatbotEngine.processQuery("What projects are available?", defaultContext);
+    expect(res.text).toContain("verified projects");
+    expect(res.actions?.some((a) => a.target === "projects" && a.type === "scroll")).toBe(true);
+  });
+
+  test("'Guide me through the portfolio' returns quick action grid", () => {
+    const res = PortfolioChatbotEngine.processQuery("Guide me through the portfolio", defaultContext);
+    expect(res.showQuickActionGrid).toBe(true);
+  });
+
+  test("'Tell me about yourself' returns bio and developer overview", () => {
+    const res = PortfolioChatbotEngine.processQuery("Tell me about yourself", defaultContext);
+    expect(res.text).toContain("Full Stack Software Engineer");
+    expect(res.actions?.some((a) => a.target === "about" && a.type === "scroll")).toBe(true);
+  });
+
+  test("'How can I contact you?' returns contact channels", () => {
+    const res = PortfolioChatbotEngine.processQuery("How can I contact you?", defaultContext);
+    expect(res.text).toContain("Email");
+    expect(res.actions?.some((a) => a.target === "contact" && a.type === "scroll")).toBe(true);
+  });
+
+  test("'Where can I find your CV?' returns resume overview and download action", () => {
+    const res = PortfolioChatbotEngine.processQuery("Where can I find your CV?", defaultContext);
+    expect(res.text).toContain("resume (CV)");
+    expect(res.actions?.some((a) => a.type === "url")).toBe(true);
+  });
+
+  test("Direct navigation intents properly resolve to section scroll targets", () => {
+    const navSkills = PortfolioChatbotEngine.processQuery("take me to skills", defaultContext);
+    expect(navSkills.actions?.[0].target).toBe("skills");
+
+    const navProjects = PortfolioChatbotEngine.processQuery("go to projects", defaultContext);
+    expect(navProjects.actions?.[0].target).toBe("projects");
+
+    const navContact = PortfolioChatbotEngine.processQuery("scroll to contact", defaultContext);
+    expect(navContact.actions?.[0].target).toBe("contact");
+  });
+
+  test("'who are you?' introduces bot as Portfolio AI Assistant", () => {
+    const res = PortfolioChatbotEngine.processQuery("who are you?", defaultContext);
+    expect(res.text).toContain("AI Assistant");
+    expect(res.text).toContain("Quick Snapshot");
+  });
+
+  test("certificates with snake_case is_active: false are excluded", () => {
+    localStorage.setItem(
+      "nashir_cached_certificates",
+      JSON.stringify([
+        {
+          title: "Database Hidden Certificate",
+          issuer: "Cloud Org",
+          year: "2026",
+          type: "Professional",
+          is_active: false,
+        },
+      ])
+    );
+
+    const res = PortfolioChatbotEngine.processQuery("Show certifications", defaultContext);
+    expect(res.text).not.toContain("Database Hidden Certificate");
+
+    localStorage.removeItem("nashir_cached_certificates");
+  });
+});
+

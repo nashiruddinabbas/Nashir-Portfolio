@@ -1,0 +1,108 @@
+import React from "react";
+import { FaCode } from "react-icons/fa";
+
+export type AdminNavTab =
+  | "overview"
+  | "analytics"
+  | "projects"
+  | "skills"
+  | "process"
+  | "profile"
+  | "education"
+  | "experience"
+  | "resume"
+  | "messages"
+  | "reviews"
+  | "chatbotqa"
+  | "setup";
+
+export type ProjectViewMode = "list" | "editor";
+
+export interface ProjectCategoryDef {
+  id: string;
+  name: string;
+  desc: string;
+  icon: any;
+  badge: string;
+  borderActive: string;
+}
+
+export interface TechSuggestion {
+  name: string;
+  category: "frontend" | "backend" | "db_cloud" | "ai_ml" | "mobile" | "iot" | "tools";
+  popular?: boolean;
+}
+
+export interface StackPreset {
+  name: string;
+  desc: string;
+  icon: any;
+  techs: string[];
+  badgeColor: string;
+}
+
+export interface PresetCover {
+  name: string;
+  url: string;
+}
+
+export interface AdminToast {
+  message: string;
+  type: "success" | "error";
+}
+
+export const renderIcon = (Icon: any, props: any = {}) => {
+  if (!Icon) return React.createElement(FaCode as any, props);
+  if (
+    typeof Icon === "string" &&
+    (Icon.startsWith("http://") ||
+      Icon.startsWith("https://") ||
+      Icon.startsWith("data:image/") ||
+      Icon.includes("/"))
+  ) {
+    return React.createElement("img", {
+      src: Icon,
+      alt: "icon",
+      className: `object-contain ${props.className || ""}`,
+      style: {
+        width: props.size || 20,
+        height: props.size || 20,
+        display: "inline-block",
+        verticalAlign: "middle",
+        ...props.style,
+      },
+      onError: (e: any) => {
+        e.currentTarget.style.display = "none";
+      },
+    });
+  }
+  return React.createElement((Icon || FaCode) as any, props);
+};
+
+export const getFeatureList = (features: any): string[] => {
+  if (!features) return [];
+  if (Array.isArray(features)) {
+    return features.map((f) => String(f).trim()).filter(Boolean);
+  }
+  if (typeof features === "string") {
+    return features
+      .split("\n")
+      .map((f) => f.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+export const getSelectedTechs = (techStr: any): string[] => {
+  if (!techStr) return [];
+  if (Array.isArray(techStr)) {
+    return techStr.map((t) => String(t).trim()).filter(Boolean);
+  }
+  if (typeof techStr === "string") {
+    return techStr
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  return [];
+};

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Early Third-Party Error Capture: Prevent Google Translate & cross-origin "Script error." from triggering CRA overlay -->
+    <script>
+      (function () {
+        function shouldSuppressError(msg, filename, stack) {
+          var text = (String(msg || "") + " " + String(filename || "") + " " + String(stack || "")).toLowerCase();
+          return (
+            text.indexOf("script error") !== -1 ||
+            text.indexOf("translate.googleapis.com") !== -1 ||
+            text.indexOf("translate.google.com") !== -1 ||
+            text.indexOf("translate_http") !== -1 ||
+            text.indexOf("ka`prod") !== -1 ||
+            text.indexOf("goog-te") !== -1 ||
+            text.indexOf("element.js") !== -1
+          );
+        }
+
+        window.addEventListener(
+          "error",
+          function (e) {
+            var msg = e.message || (e.error && e.error.message) || "";
+            var filename = e.filename || "";
+            var stack = (e.error && e.error.stack) || "";
+            if (shouldSuppressError(msg, filename, stack)) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+              return true;
+            }
+          },
+          true
+        );
+
+        window.addEventListener(
+          "unhandledrejection",
+          function (e) {
+            var reason = e.reason;
+            var msg = String(reason || "");
+            var stack = reason && reason.stack ? String(reason.stack) : "";
+            if (shouldSuppressError(msg, "", stack)) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+              return true;
+            }
+          },
+          true
+        );
+
+        // Fallback global handler to swallow cross-origin Script error
+        window.onerror = function (msg, url, line, col, error) {
+          var messageStr = String(msg || "");
+          var urlStr = String(url || "");
+          var stackStr = (error && error.stack) ? String(error.stack) : "";
+          if (shouldSuppressError(messageStr, urlStr, stackStr)) {
+            return true; // Prevents default error overlay
+          }
+        };
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="theme-color" content="#030014" />
+    <meta
+      name="description"
+      content="Portfolio of Md. Nashir Uddin Abbas — Full-Stack Software Engineer and Mobile Developer specializing in React, Next.js, Node.js, TypeScript, and Flutter."
+    />
+    <meta
+      name="keywords"
+      content="Md. Nashir Uddin Abbas, Full Stack Developer, Software Engineer, React Developer, Node.js, Flutter, TypeScript, Portfolio, BOU, Web Developer Bangladesh"
+    />
+    <meta name="author" content="Md. Nashir Uddin Abbas" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://dev-nashir.netlify.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Md. Nashir Uddin Abbas | Full-Stack Software Engineer & Mobile Developer" />
+    <meta
+      property="og:description"
+      content="Explore full-stack web applications, cross-platform mobile apps, system architectures, and verified software engineering credentials."
+    />
+    <meta property="og:image" content="%PUBLIC_URL%/favicon.png" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@Mahar22234" />
+    <meta name="twitter:title" content="Md. Nashir Uddin Abbas | Full-Stack Software Engineer" />
+    <meta
+      name="twitter:description"
+      content="Full-stack engineering portfolio featuring production web apps, mobile systems, and case studies."
+    />
+    <meta name="twitter:image" content="%PUBLIC_URL%/favicon.png" />
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <title>Md. Nashir Uddin Abbas | Full-Stack Software Engineer &amp; Mobile Developer</title>
+
+    <!-- Security & Protection Meta Tags -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- Structured Data (JSON-LD) for Search Engines & AI Agents -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://dev-nashir.netlify.app/#person",
+            "name": "Md. Nashir Uddin Abbas",
+            "alternateName": ["Nashir Uddin Abbas", "Nashir"],
+            "jobTitle": "Full-Stack Software Engineer & Mobile Developer",
+            "description": "Full-Stack Software Engineer and Mobile Developer specializing in React, Next.js, Node.js, TypeScript, and Flutter.",
+            "url": "https://dev-nashir.netlify.app/",
+            "email": "mailto:nashiruddinabbas@gmail.com",
+            "telephone": "+8801586282609",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Dhaka",
+              "addressCountry": "Bangladesh"
+            },
+            "alumniOf": {
+              "@type": "CollegeOrUniversity",
+              "name": "Bangladesh Open University (BOU)"
+            },
+            "knowsAbout": [
+              "React",
+              "Next.js",
+              "Node.js",
+              "TypeScript",
+              "JavaScript",
+              "Flutter",
+              "Tailwind CSS",
+              "PostgreSQL",
+              "Supabase",
+              "MongoDB",
+              "REST APIs",
+              "Git"
+            ],
+            "sameAs": [
+              "https://github.com/NashirUddin",
+              "https://www.linkedin.com/in/md-nashir-uddin-abbas-679a70253/",
+              "https://x.com/NashirUddin"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://dev-nashir.netlify.app/#website",
+            "url": "https://dev-nashir.netlify.app/",
+            "name": "Md. Nashir Uddin Abbas Portfolio",
+            "description": "Portfolio of Md. Nashir Uddin Abbas — Full-Stack Software Engineer and Mobile Developer.",
+            "publisher": {
+              "@id": "https://dev-nashir.netlify.app/#person"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="bg-[#030014] text-slate-100 antialiased" style="margin: 0; background-color: #030014;">
+    <style>
+      @keyframes appPreloaderSpin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <noscript>
+      <div style="padding: 32px 20px; max-width: 800px; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif; color: #f1f5f9; background-color: #030014; line-height: 1.6;">
+        <h1 style="font-size: 26px; color: #ffffff;">Md. Nashir Uddin Abbas | Full-Stack Software Engineer &amp; Mobile Developer</h1>
+        <p style="color: #38bdf8; font-weight: 600;">Dhaka, Bangladesh | Email: nashiruddinabbas@gmail.com</p>
+        <p>Passionate Software Engineering student at Bangladesh Open University (BOU). Specialized in building scalable, resilient digital applications across React, Next.js, Node.js, Flutter, and cloud ecosystems.</p>
+        <h2>Technical Skills</h2>
+        <p>React.js, Next.js, TypeScript, JavaScript, Flutter, Dart, Node.js, Express.js, PostgreSQL, Supabase, MongoDB, RESTful APIs, Tailwind CSS, Redux, Git.</p>
+        <h2>Featured Projects</h2>
+        <ul>
+          <li><strong>Saytica</strong> — Enterprise Web Platform &amp; Admin Dashboard</li>
+          <li><strong>PurchifyShop</strong> — Full-Stack E-commerce Platform</li>
+          <li><strong>Midtown Aabashon Ltd</strong> — Corporate Real Estate Platform</li>
+          <li><strong>AuthNova Security Suite</strong> — Authentication &amp; RBAC Platform</li>
+          <li><strong>BachLife &amp; NetBagZ</strong> — Cross-Platform Mobile Applications</li>
+        </ul>
+        <h2>Education</h2>
+        <p>B.Sc. in Computer Science &amp; Engineering, BOU (2022 - Present)</p>
+      </div>
+    </noscript>
+
+    <!-- Clean Preloader: Sleek dark background matching portfolio theme; zero text flash on refresh -->
+    <div id="root">
+      <div style="min-height: 100vh; background-color: #030014; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 36px; height: 36px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: appPreloaderSpin 0.9s linear infinite;"></div>
+      </div>
+    </div>
+
+    <!-- Google Translate Website Widget Mount Point -->
+    <div id="google_translate_element" style="position: absolute; left: -9999px; top: -9999px; width: 0; height: 0; overflow: hidden;" aria-hidden="true"></div>
+
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'en',
+            autoDisplay: false,
+            layout: (window.google.translate.TranslateElement && window.google.translate.TranslateElement.InlineLayout) ? window.google.translate.TranslateElement.InlineLayout.SIMPLE : 0
+          }, 'google_translate_element');
+        }
+      }
+    </script>
+    <script id="google-translate-script" type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+  </body>
+</html>
+
